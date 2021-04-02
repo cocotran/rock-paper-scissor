@@ -8,27 +8,31 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.Socket;
+import java.util.ArrayList;
 
 public class Client {
+
+    private final static String SEPARATOR = "&";
 
     private static Socket clientSocket;
     private static String clientName = "";
 
     private static JFrame frame;
-    private static JLabel clientNameLabel;
+    private static JLabel clientNameLabel, playWithLabel;
     private static JTextField clientNameTextField;
-    private static JButton connectButton;
+    private static JButton connectButton, playButton;
+    private static JComboBox playWithBox;
 
 
     public static void main(String[] args) throws Exception {
 
-    // CONNECTION ROW STARTS
         // Create the GUI frame and components
         frame = new JFrame ("RPS Game Client");
         frame.setLayout(null);
         frame.setBounds(100, 100, 480, 600);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
+    // CONNECTION ROW STARTS
         // Client Name label
         clientNameLabel = new JLabel("Client Name");
         clientNameLabel.setBounds(20, 40, 150, 30);
@@ -44,6 +48,24 @@ public class Client {
         connectButton.setBounds(330, 40, 100, 30);
         frame.getContentPane().add(connectButton);
     // CONNECTION ROW ENDS
+
+    // PLAY WITH ROW STARTS
+        // Play With label
+        playWithLabel = new JLabel("Play With: ");
+        playWithLabel.setBounds(20, 90, 150, 30);
+        frame.getContentPane().add(playWithLabel);
+
+        // Play With Combo Box
+        playWithBox = new JComboBox();
+        playWithBox.setBounds(130, 90, 150, 30);
+        frame.getContentPane().add(playWithBox);
+
+        // Play button
+        playButton = new JButton("Play");
+        playButton.setBounds(330, 90, 100, 30);
+        frame.getContentPane().add(playButton);
+
+    // PLAY WITH ROW ENDS
 
 
     // BUTTONS ACTION LISTENER FUNCTIONS STARTS
@@ -141,16 +163,30 @@ public class Client {
                     System.out.println(receivedSentence);
 
                     if (receivedSentence.startsWith("-Connected")) {
-                        outToServer.writeBytes("-Join," + clientName + "\n");
+                        outToServer.writeBytes("-Join" + SEPARATOR + clientName + "\n");
                     }
 
-                    if (receivedSentence.startsWith("-NameTaken")) { // Name is already taken
+                    else if (receivedSentence.startsWith("-NameTaken")) { // Name is already taken
                         disconnect();
                     }
 
-//                    if (receivedSentence.startsWith("-Joined")) {
-//                        outToServer.writeBytes("-Join," + clientName + "\n");
-//                    }
+                    else if (receivedSentence.startsWith("-Joined")) {
+                        outToServer.writeBytes("-PlayersList" + "\n");
+                    }
+
+                    else if (receivedSentence.startsWith("-PlayersList")) {
+                        String []data = receivedSentence.split(SEPARATOR);
+                        String []playersList = data[1].split(",");
+
+                        playWithBox.removeAllItems();
+
+                        for (String player: playersList) {
+                            if (!player.equals(clientName)) {
+                                playWithBox.addItem(player);
+                            }
+                        }
+                    }
+
 
 
 

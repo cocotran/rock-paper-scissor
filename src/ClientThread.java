@@ -14,15 +14,19 @@ public class ClientThread extends Thread {
 
     // constructor function
     public ClientThread(int number, Socket connectionSocket) {
-
         this.number = number;
         this.connectionSocket = connectionSocket;
         this.name = "";
-
     }
+
+    String getPlayerName() { return this.name; }
+
+    Socket getConnectionSocket() { return this.connectionSocket; }
 
     // thread's run function
     public void run() {
+
+        final String SEPARATOR = "&";
 
         try {
 
@@ -49,7 +53,7 @@ public class ClientThread extends Thread {
                 }
 
                 else if (clientSentence.startsWith("-Join")) { // Check client name
-                    String []client = clientSentence.split(",");
+                    String []client = clientSentence.split(SEPARATOR);
 
                     for (int i = 0; i < Server.Clients.size(); i++) {
                         if (Server.Clients.get(i).name.equals(client[1])) {
@@ -58,11 +62,13 @@ public class ClientThread extends Thread {
                         }
                     }
 
-                    outToClient.writeBytes("-Joined," + client[1] + "\n");
+                    outToClient.writeBytes("-Joined" + SEPARATOR + client[1] + "\n");
                     name = client[1];
                 }
 
-
+                else if (clientSentence.startsWith("-PlayersList")) { // Send list of connected players
+                    Server.updatePlayersList();
+                }
 
 
 

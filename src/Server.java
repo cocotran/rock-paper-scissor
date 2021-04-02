@@ -8,6 +8,8 @@ import java.util.ArrayList;
 
 public class Server {
 
+    private final static String SEPARATOR = "&";
+
     // Array of type ClientServiceThread, for all connected clients
     public static ArrayList<ClientThread> Clients = new ArrayList<ClientThread>();
     private static int clientCount = 0;
@@ -100,9 +102,24 @@ public class Server {
         }}).start();
 
 
-
         frame.setVisible(true);
 
+    }
+
+
+    static void updatePlayersList() throws IOException {
+        DataOutputStream outToClient;
+        ArrayList<String> playersList = new ArrayList<>();
+
+        for (int i = 0; i < Server.Clients.size(); i++)
+            playersList.add(Server.Clients.get(i).getPlayerName());
+
+        String list = String.join(",", playersList);
+
+        for (int i=0; i < Clients.size(); i++) {
+            outToClient = new DataOutputStream(Clients.get(i).getConnectionSocket().getOutputStream());
+            outToClient.writeBytes("-PlayersList" + SEPARATOR + list + "\n");
+        }
     }
 
 }
