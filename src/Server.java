@@ -9,7 +9,7 @@ import java.util.ArrayList;
 public class Server {
 
     // Array of type ClientServiceThread, for all connected clients
-    private static ArrayList<ClientThread> Clients = new ArrayList<ClientThread>();
+    public static ArrayList<ClientThread> Clients = new ArrayList<ClientThread>();
     private static int clientCount = 0;
 
     public static void main(String[] args) throws Exception {
@@ -48,10 +48,10 @@ public class Server {
 
                     clientCount++;
 
-//                    // add the new client to the client's array
-//                    Clients.add(new ClientThread(clientCount, connectionSocket, Clients));
-//                    // start the new client's thread
-//                    Clients.get(Clients.size() - 1).start();
+                    // add the new client to the client's array
+                    Clients.add(new ClientThread(clientCount, connectionSocket));
+                    // start the new client's thread
+                    Clients.get(Clients.size() - 1).start();
 
                 }
                 catch (Exception ex) {
