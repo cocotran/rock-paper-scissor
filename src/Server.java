@@ -14,6 +14,9 @@ public class Server {
     public static ArrayList<ClientThread> Clients = new ArrayList<ClientThread>();
     private static int clientCount = 0;
 
+    public static ArrayList<GameThread> Games = new ArrayList<GameThread>();
+    private static int gameCount = 0;
+
     public static void main(String[] args) throws Exception {
 
         // Create the GUI frame and components
@@ -95,9 +98,7 @@ public class Server {
 
                 }
 
-            } catch (Exception ex) {
-
-            }
+            } catch (Exception ex) {}
 
         }}).start();
 
@@ -121,5 +122,26 @@ public class Server {
             outToClient.writeBytes("-PlayersList" + SEPARATOR + list + "\n");
         }
     }
+
+
+    static void createNewGame(ClientThread player1, ClientThread player2) {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+
+                    Games.add(new GameThread(generateNewGameID(), player1, player2));
+
+                    Games.get(Games.size() - 1).start();
+
+                    System.out.println("New game started.");
+
+                } catch (Exception ex) {}
+            }
+        }).start();
+    }
+
+
+    public static int generateNewGameID() { return gameCount++; }
 
 }

@@ -1,4 +1,5 @@
 import javax.swing.*;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
@@ -8,7 +9,7 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.Socket;
-import java.util.ArrayList;
+
 
 public class Client {
 
@@ -16,11 +17,12 @@ public class Client {
 
     private static Socket clientSocket;
     private static String clientName = "";
+    private static String opponentName = "";
 
     private static JFrame frame;
-    private static JLabel clientNameLabel, playWithLabel;
+    private static JLabel clientNameLabel, playWithLabel, requestLabel, resultLabel;
     private static JTextField clientNameTextField;
-    private static JButton connectButton, playButton;
+    private static JButton connectButton, playButton, acceptButton, denyButton,  rockButton, paperButton, scissorButton;
     private static JComboBox playWithBox;
 
 
@@ -64,8 +66,52 @@ public class Client {
         playButton = new JButton("Play");
         playButton.setBounds(330, 90, 100, 30);
         frame.getContentPane().add(playButton);
-
     // PLAY WITH ROW ENDS
+
+    // MAIN GAME MENU STARTS
+        // Request label
+        requestLabel = new JLabel("", SwingConstants.CENTER);
+        requestLabel.setBounds(0, 200, 480, 100);
+        requestLabel.setFont(new Font("Sans-Serif", Font.PLAIN, 18));
+        requestLabel.setForeground(Color.BLUE);
+        frame.getContentPane().add(requestLabel);
+
+        // Accept button
+        acceptButton = new JButton("ACCEPT");
+        acceptButton.setBounds(110, 300, 100, 30);
+        frame.getContentPane().add(acceptButton);
+
+        // Deny button
+        denyButton = new JButton("DENY");
+        denyButton.setBounds(260, 300, 100, 30);
+        frame.getContentPane().add(denyButton);
+
+        setRequestVisibility(false);
+
+        // Rock button
+        rockButton = new JButton("ROCK");
+        rockButton.setBounds(190, 150, 100, 100);
+        frame.getContentPane().add(rockButton);
+
+        // Paper button
+        paperButton = new JButton("PAPER");
+        paperButton.setBounds(190, 260, 100, 100);
+        frame.getContentPane().add(paperButton);
+
+        // Scissor button
+        scissorButton = new JButton("SCISSOR");
+        scissorButton.setBounds(190, 370, 100, 100);
+        frame.getContentPane().add(scissorButton);
+
+        // Result label
+        resultLabel = new JLabel("You win", SwingConstants.CENTER);
+        resultLabel.setBounds(0, 470, 480, 100);
+        resultLabel.setFont(new Font("Sans-Serif", Font.BOLD, 18));
+        frame.getContentPane().add(resultLabel);
+
+        setGameMenuVisibility(false);
+
+    // MAIN GAME MENU ENDS
 
 
     // BUTTONS ACTION LISTENER FUNCTIONS STARTS
@@ -79,7 +125,7 @@ public class Client {
 
                         clientName = clientNameTextField.getText();
 
-                        if (! (clientName.equals(""))) {
+                        if (! (clientName.equals("") && clientName.equals("DRAW"))) {
                             // create a new socket to connect with the server application
                             clientSocket = new Socket ("localhost", 6789);
 
@@ -117,9 +163,54 @@ public class Client {
             }
         });
 
+        // Play Button
+        playButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                try {
+                    String opponentPlayerName = playWithBox.getSelectedItem().toString();
+
+                    DataOutputStream outToServer = new DataOutputStream (clientSocket.getOutputStream());
+                    outToServer.writeBytes("-Request" + SEPARATOR + opponentPlayerName + "\n");
+
+                    requestLabel.setVisible(true);
+                    requestLabel.setText("Waiting for your opponent ...");
+
+                } catch (Exception er) {}
+            }
+        });
+
+        // Accept Button
+        acceptButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                try {
+
+                    DataOutputStream outToServer = new DataOutputStream (clientSocket.getOutputStream());
+                    outToServer.writeBytes("-Accept" + SEPARATOR + opponentName + "\n");
+
+                } catch (Exception er) {}
+            }
+        });
+
+        // Deny Button
+        denyButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                try {
+
+                    DataOutputStream outToServer = new DataOutputStream (clientSocket.getOutputStream());
+                    outToServer.writeBytes("-Deny" + SEPARATOR + opponentName + "\n");
+
+                } catch (Exception er) {}
+            }
+        });
+    // BUTTONS ACTION LISTENER FUNCTIONS ENDS
+
 
         frame.setVisible(true);
     }
+
 
 
     private static void disconnect() throws IOException {
@@ -187,7 +278,18 @@ public class Client {
                         }
                     }
 
+                    else if (receivedSentence.startsWith("-Request")) {
+                        String []data = receivedSentence.split(SEPARATOR);
+                        opponentName = data[1];
 
+                        requestLabel.setText(opponentName + " invited you to a match.");
+                        setRequestVisibility(true);
+                    }
+
+                    else if (receivedSentence.startsWith("-Play")) {
+                        setRequestVisibility(false);
+                        setGameMenuVisibility(true);
+                    }
 
 
                 }
@@ -197,6 +299,19 @@ public class Client {
 
             }
         }}).start();
+    }
+
+    private static void setRequestVisibility(boolean visibility) {
+        requestLabel.setVisible(visibility);
+        acceptButton.setVisible(visibility);
+        denyButton.setVisible(visibility);
+    }
+
+    private static void setGameMenuVisibility(boolean visibility) {
+        rockButton.setVisible(visibility);
+        paperButton.setVisible(visibility);
+        scissorButton.setVisible(visibility);
+        resultLabel.setVisible(visibility);
     }
 
 }
