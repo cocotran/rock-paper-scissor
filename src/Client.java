@@ -14,6 +14,9 @@ import java.net.Socket;
 public class Client {
 
     private final static String SEPARATOR = "&";
+    private final static String ROCK = "rock";
+    private final static String PAPER = "paper";
+    private final static String SCISSOR = "scissor";
 
     private static Socket clientSocket;
     private static String clientName = "";
@@ -205,6 +208,45 @@ public class Client {
                 } catch (Exception er) {}
             }
         });
+
+        // Rock Button
+        rockButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                try {
+
+                    DataOutputStream outToServer = new DataOutputStream (clientSocket.getOutputStream());
+                    outToServer.writeBytes("-Choice" + SEPARATOR + ROCK + "\n");
+
+                } catch (Exception er) {}
+            }
+        });
+
+        // Paper Button
+        paperButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                try {
+
+                    DataOutputStream outToServer = new DataOutputStream (clientSocket.getOutputStream());
+                    outToServer.writeBytes("-Choice" + SEPARATOR + PAPER + "\n");
+
+                } catch (Exception er) {}
+            }
+        });
+
+        // Scissor Button
+        scissorButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                try {
+
+                    DataOutputStream outToServer = new DataOutputStream (clientSocket.getOutputStream());
+                    outToServer.writeBytes("-Choice" + SEPARATOR + SCISSOR + "\n");
+
+                } catch (Exception er) {}
+            }
+        });
     // BUTTONS ACTION LISTENER FUNCTIONS ENDS
 
 
@@ -290,6 +332,17 @@ public class Client {
                         setRequestVisibility(false);
                         setGameMenuVisibility(true);
                     }
+
+                    else if (receivedSentence.startsWith("-CreateGame")) {
+                        String gameID = receivedSentence.split(SEPARATOR)[1];
+                        outToServer.writeBytes("-Game" + SEPARATOR + gameID + "\n");
+                    }
+
+                    else if (receivedSentence.startsWith("-Result")) {
+                        resultLabel.setText(receivedSentence.split(SEPARATOR)[1] + " WON!");
+                    }
+
+
 
 
                 }

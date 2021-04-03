@@ -14,7 +14,7 @@ public class Server {
     public static ArrayList<ClientThread> Clients = new ArrayList<ClientThread>();
     private static int clientCount = 0;
 
-    public static ArrayList<GameThread> Games = new ArrayList<GameThread>();
+    public static ArrayList<Game> Games = new ArrayList<Game>();
     private static int gameCount = 0;
 
     public static void main(String[] args) throws Exception {
@@ -124,23 +124,34 @@ public class Server {
     }
 
 
-    static void createNewGame(ClientThread player1, ClientThread player2) {
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                try {
+    static int createNewGame() throws IOException {
+        int gameID = generateNewGameID();
 
-                    Games.add(new GameThread(generateNewGameID(), player1, player2));
+        Game game = new Game(gameID);
+        Games.add(game);
 
-                    Games.get(Games.size() - 1).start();
+        System.out.println("New game started.");
 
-                    System.out.println("New game started.");
-
-                } catch (Exception ex) {}
-            }
-        }).start();
+        return gameID;
     }
 
+    static Game getGameByID(int ID) {
+        for (int i = 0; i < Games.size(); i++) {
+            if (Games.get(i).getNumber() == ID)
+                return Games.get(i);
+        }
+        return null;
+    }
+
+    static void announceWinner(Game game) throws IOException {
+        DataOutputStream outToClient;
+
+        ArrayList<ClientThread> players = game.getAllPlayers();
+        for (int i = 0; i < players.size(); i++) {
+            outToClient = new DataOutputStream(players.get(i).getConnectionSocket().getOutputStream());
+            outToClient.writeBytes("-Result" + SEPARATOR + game.getWinner() + "\n");
+        }
+    }
 
     public static int generateNewGameID() { return gameCount++; }
 

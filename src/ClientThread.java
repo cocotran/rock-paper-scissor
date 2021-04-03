@@ -1,14 +1,19 @@
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.Socket;
-import java.util.ArrayList;
 
 public class ClientThread extends Thread {
+
+    private final String ROCK = "rock";
+    private final String PAPER = "paper";
+    private final String SCISSOR = "scissor";
 
     // The ClientServiceThread class extends the Thread class and has the following parameters
     private String name; // client name
     private int number; // Client ID
+    private int gameNumber; // Game ID
     private Socket connectionSocket; // Client connection socket
 
 
@@ -89,25 +94,43 @@ public class ClientThread extends Thread {
                 }
 
                 else if (clientSentence.startsWith("-Accept")) { // Create a new game
-                    ClientThread player1 = null, player2 = null;
-
-                    // Get player 1
-                    for (int i = 0; i < Server.Clients.size(); i++) {
-                        if (Server.Clients.get(i).number == number)
-                            player1 = new ClientThread(Server.Clients.get(i));
-                    }
-
-                    // Get player 2
                     String playerName = clientSentence.split(SEPARATOR)[1];
-                    for (int i = 0; i < Server.Clients.size(); i++) {
-                        if (Server.Clients.get(i).name.equals(playerName))
-                            player2 = new ClientThread(Server.Clients.get(i));
-                    }
+                    gameNumber = Server.createNewGame();
 
-                    Server.createNewGame(player1, player2);
+                    outToClient = new DataOutputStream(connectionSocket.getOutputStream());
+                    outToClient.writeBytes("-CreateGame" + SEPARATOR + gameNumber + "\n");
+
+                    for (int i = 0; i < Server.Clients.size(); i++) {
+                        if (Server.Clients.get(i).name.equals(playerName)) {
+                            outToClient = new DataOutputStream(Server.Clients.get(i).connectionSocket.getOutputStream());
+                            outToClient.writeBytes("-CreateGame" + SEPARATOR + gameNumber + "\n");
+                        }
+                    }
                 }
 
+                else if (clientSentence.startsWith("-Game")) {  // Players join game
+                    String gameID = clientSentence.split(SEPARATOR)[1];
 
+                    Game game = Server.getGameByID(Integer.parseInt(gameID));
+
+                    for (int i = 0; i < Server.Clients.size(); i++) {
+                        if (Server.Clients.get(i).number == number) {
+                            game.addPlayer(Server.Clients.get(i));
+                            game.startGame();
+                        }
+                    }
+                }
+
+                else if (clientSentence.startsWith("-Choice")) { // Game choice
+                    String choice = clientSentence.split(SEPARATOR)[1];
+
+                    Game game = Server.getGameByID(gameNumber);
+
+                    game.updatePlayerChoice(name, choice);
+
+                    if (!game.getWinner().equals(""))
+                        Server.announceWinner(game);
+                }
 
 
             }
