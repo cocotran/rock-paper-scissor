@@ -130,7 +130,7 @@ public class Server {
         Game game = new Game(gameID);
         Games.add(game);
 
-        System.out.println("New game started.");
+        System.out.println("New game started: " + gameID);
 
         return gameID;
     }
@@ -151,6 +151,7 @@ public class Server {
             outToClient = new DataOutputStream(players.get(i).getConnectionSocket().getOutputStream());
             outToClient.writeBytes("-Result" + SEPARATOR + game.getWinner() + "\n");
         }
+        game.startNewGame();
     }
 
     public static int generateNewGameID() { return gameCount++; }

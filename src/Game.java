@@ -64,8 +64,6 @@ public class Game {
         if (player1Choice.equals("") || player2Choice.equals(""))
             return "";
         else {
-            System.out.println("P1: " + player1Choice + "\n");
-            System.out.println("P2: " + player2Choice + "\n");
 
             ClientThread winner = null;
             if (player1Choice.equals(player2Choice))
@@ -90,6 +88,11 @@ public class Game {
 
             return winner.getPlayerName();
         }
+    }
+
+    void startNewGame() {
+        this.player1Choice = "";
+        this.player2Choice = "";
     }
 
 

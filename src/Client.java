@@ -171,13 +171,22 @@ public class Client {
             @Override
             public void actionPerformed(ActionEvent e) {
                 try {
-                    String opponentPlayerName = playWithBox.getSelectedItem().toString();
+                    if (playButton.getText().equals("Play")) {
+                        String opponentPlayerName = playWithBox.getSelectedItem().toString();
 
-                    DataOutputStream outToServer = new DataOutputStream (clientSocket.getOutputStream());
-                    outToServer.writeBytes("-Request" + SEPARATOR + opponentPlayerName + "\n");
+                        opponentName = opponentPlayerName;
 
-                    requestLabel.setVisible(true);
-                    requestLabel.setText("Waiting for your opponent ...");
+                        DataOutputStream outToServer = new DataOutputStream(clientSocket.getOutputStream());
+                        outToServer.writeBytes("-Request" + SEPARATOR + opponentPlayerName + "\n");
+
+                        requestLabel.setVisible(true);
+                        requestLabel.setText("Waiting for your opponent ...");
+                    }
+                    else {
+                        DataOutputStream outToServer = new DataOutputStream(clientSocket.getOutputStream());
+                        outToServer.writeBytes("-Stop" + SEPARATOR + opponentName + "\n");
+
+                    }
 
                 } catch (Exception er) {}
             }
@@ -192,6 +201,8 @@ public class Client {
                     DataOutputStream outToServer = new DataOutputStream (clientSocket.getOutputStream());
                     outToServer.writeBytes("-Accept" + SEPARATOR + opponentName + "\n");
 
+                    playButton.setEnabled(true);
+
                 } catch (Exception er) {}
             }
         });
@@ -204,6 +215,8 @@ public class Client {
 
                     DataOutputStream outToServer = new DataOutputStream (clientSocket.getOutputStream());
                     outToServer.writeBytes("-Deny" + SEPARATOR + opponentName + "\n");
+
+                    playButton.setEnabled(true);
 
                 } catch (Exception er) {}
             }
@@ -326,6 +339,7 @@ public class Client {
 
                         requestLabel.setText(opponentName + " invited you to a match.");
                         setRequestVisibility(true);
+                        playButton.setEnabled(false);
                     }
 
                     else if (receivedSentence.startsWith("-Play")) {
@@ -339,7 +353,16 @@ public class Client {
                     }
 
                     else if (receivedSentence.startsWith("-Result")) {
-                        resultLabel.setText(receivedSentence.split(SEPARATOR)[1] + " WON!");
+                        String winner = receivedSentence.split(SEPARATOR)[1];
+                        resultLabel.setText(winner + (winner.equals("DRAW") ? "!" : " WON!") );
+                    }
+
+                    else if (receivedSentence.startsWith("-StopGame")) {
+                        setRequestVisibility(false);
+                        setGameMenuVisibility(false);
+
+                        requestLabel.setVisible(true);
+                        requestLabel.setText("Please choose another player");
                     }
 
 
@@ -365,6 +388,8 @@ public class Client {
         paperButton.setVisible(visibility);
         scissorButton.setVisible(visibility);
         resultLabel.setVisible(visibility);
+
+        playButton.setText(visibility ? "Stop" : "Play");
     }
 
 }

@@ -102,8 +102,24 @@ public class ClientThread extends Thread {
 
                     for (int i = 0; i < Server.Clients.size(); i++) {
                         if (Server.Clients.get(i).name.equals(playerName)) {
+                            Server.Clients.get(i).gameNumber = this.gameNumber;
+
                             outToClient = new DataOutputStream(Server.Clients.get(i).connectionSocket.getOutputStream());
                             outToClient.writeBytes("-CreateGame" + SEPARATOR + gameNumber + "\n");
+                        }
+                    }
+                }
+
+                else if (clientSentence.startsWith("-Deny")) { // Create a new game
+                    String playerName = clientSentence.split(SEPARATOR)[1];
+
+                    outToClient = new DataOutputStream(connectionSocket.getOutputStream());
+                    outToClient.writeBytes("-StopGame" + "\n");
+
+                    for (int i = 0; i < Server.Clients.size(); i++) {
+                        if (Server.Clients.get(i).name.equals(playerName)) {
+                            outToClient = new DataOutputStream(Server.Clients.get(i).connectionSocket.getOutputStream());
+                            outToClient.writeBytes("-StopGame" + "\n");
                         }
                     }
                 }
@@ -130,6 +146,27 @@ public class ClientThread extends Thread {
 
                     if (!game.getWinner().equals(""))
                         Server.announceWinner(game);
+                }
+
+                else if (clientSentence.startsWith("-Stop")) { // Game choice
+                    String playerName = clientSentence.split(SEPARATOR)[1];
+
+                    outToClient = new DataOutputStream(connectionSocket.getOutputStream());
+                    outToClient.writeBytes("-StopGame" + "\n");
+
+                    for (int i = 0; i < Server.Clients.size(); i++) {
+                        if (Server.Clients.get(i).name.equals(playerName)) {
+                            outToClient = new DataOutputStream(Server.Clients.get(i).connectionSocket.getOutputStream());
+                            outToClient.writeBytes("-StopGame" + "\n");
+                        }
+                    }
+
+                    for (int i = 0; i < Server.Games.size(); i++) {
+                        if (Server.Games.get(i).getNumber() == gameNumber) {
+                            System.out.println("Remove room ID: " + Server.Games.get(i).getNumber());
+                            Server.Games.remove(i);
+                        }
+                    }
                 }
 
 
