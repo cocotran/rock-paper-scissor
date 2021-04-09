@@ -17,6 +17,8 @@ public class Server {
     public static ArrayList<Game> Games = new ArrayList<Game>();
     private static int gameCount = 0;
 
+    public static ArrayList<String> playersList = new ArrayList<>();
+
     public static void main(String[] args) throws Exception {
 
         // Create the GUI frame and components
@@ -110,10 +112,6 @@ public class Server {
 
     static void updatePlayersList() throws IOException {
         DataOutputStream outToClient;
-        ArrayList<String> playersList = new ArrayList<>();
-
-        for (int i = 0; i < Server.Clients.size(); i++)
-            playersList.add(Server.Clients.get(i).getPlayerName());
 
         String list = String.join(",", playersList);
 

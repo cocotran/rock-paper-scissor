@@ -75,6 +75,7 @@ public class ClientThread extends Thread {
 
                     outToClient.writeBytes("-Joined" + SEPARATOR + client[1] + "\n");
                     name = client[1];
+                    Server.playersList.add(name);
                 }
 
                 else if (clientSentence.startsWith("-PlayersList")) { // Send list of connected players
@@ -135,6 +136,9 @@ public class ClientThread extends Thread {
                             game.startGame();
                         }
                     }
+
+                    Server.playersList.remove(name);
+                    Server.updatePlayersList();
                 }
 
                 else if (clientSentence.startsWith("-Choice")) { // Game choice
@@ -158,6 +162,7 @@ public class ClientThread extends Thread {
                         if (Server.Clients.get(i).name.equals(playerName)) {
                             outToClient = new DataOutputStream(Server.Clients.get(i).connectionSocket.getOutputStream());
                             outToClient.writeBytes("-StopGame" + "\n");
+                            Server.playersList.add(playerName);
                         }
                     }
 
@@ -167,6 +172,10 @@ public class ClientThread extends Thread {
                             Server.Games.remove(i);
                         }
                     }
+
+                    Server.playersList.add(name);
+
+                    Server.updatePlayersList();
                 }
 
 

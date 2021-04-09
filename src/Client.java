@@ -227,9 +227,11 @@ public class Client {
             @Override
             public void actionPerformed(ActionEvent e) {
                 try {
+                    enableDisableGameButtons(false);
 
                     DataOutputStream outToServer = new DataOutputStream (clientSocket.getOutputStream());
                     outToServer.writeBytes("-Choice" + SEPARATOR + ROCK + "\n");
+
 
                 } catch (Exception er) {}
             }
@@ -240,9 +242,11 @@ public class Client {
             @Override
             public void actionPerformed(ActionEvent e) {
                 try {
+                    enableDisableGameButtons(false);
 
                     DataOutputStream outToServer = new DataOutputStream (clientSocket.getOutputStream());
                     outToServer.writeBytes("-Choice" + SEPARATOR + PAPER + "\n");
+
 
                 } catch (Exception er) {}
             }
@@ -253,6 +257,7 @@ public class Client {
             @Override
             public void actionPerformed(ActionEvent e) {
                 try {
+                    enableDisableGameButtons(false);
 
                     DataOutputStream outToServer = new DataOutputStream (clientSocket.getOutputStream());
                     outToServer.writeBytes("-Choice" + SEPARATOR + SCISSOR + "\n");
@@ -272,18 +277,33 @@ public class Client {
         // create an output stream and send a Remove message to disconnect from the server
         DataOutputStream outToServer = new DataOutputStream (clientSocket.getOutputStream());
 
-        outToServer.writeBytes("-Remove\n");
+        if (!opponentName.equals(""))
+            outToServer.writeBytes("-Stop" + SEPARATOR + opponentName + "\n");
 
-        // close the client's socket
-        clientSocket.close();
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    System.out.println("Disconnect");
+                    outToServer.writeBytes("-Remove\n");
+                    // close the client's socket
+                    clientSocket.close();
 
-        clientName = "";
+                    clientName = "";
 
-        // make the GUI components invisible
-        clientNameTextField.setEditable(true);
+                    // make the GUI components invisible
+                    clientNameTextField.setEditable(true);
 
-        // change the Connect button text to connect
-        connectButton.setText("Connect");
+                    // change the Connect button text to connect
+                    connectButton.setText("Connect");
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }).start();
+
+        setGameMenuVisibility(false);
+        setRequestVisibility(false);
     }
 
 
@@ -321,14 +341,16 @@ public class Client {
                     }
 
                     else if (receivedSentence.startsWith("-PlayersList")) {
-                        String []data = receivedSentence.split(SEPARATOR);
-                        String []playersList = data[1].split(",");
+                        if (playButton.getText().equals("Play")) {
+                            String []data = receivedSentence.split(SEPARATOR);
+                            String []playersList = data[1].split(",");
 
-                        playWithBox.removeAllItems();
+                            playWithBox.removeAllItems();
 
-                        for (String player: playersList) {
-                            if (!player.equals(clientName)) {
-                                playWithBox.addItem(player);
+                            for (String player: playersList) {
+                                if (!player.equals(clientName)) {
+                                    playWithBox.addItem(player);
+                                }
                             }
                         }
                     }
@@ -339,12 +361,12 @@ public class Client {
 
                         requestLabel.setText(opponentName + " invited you to a match.");
                         setRequestVisibility(true);
-                        playButton.setEnabled(false);
                     }
 
                     else if (receivedSentence.startsWith("-Play")) {
                         setRequestVisibility(false);
                         setGameMenuVisibility(true);
+                        resultLabel.setText("");
                     }
 
                     else if (receivedSentence.startsWith("-CreateGame")) {
@@ -355,6 +377,8 @@ public class Client {
                     else if (receivedSentence.startsWith("-Result")) {
                         String winner = receivedSentence.split(SEPARATOR)[1];
                         resultLabel.setText(winner + (winner.equals("DRAW") ? "!" : " WON!") );
+
+                        enableDisableGameButtons(true);
                     }
 
                     else if (receivedSentence.startsWith("-StopGame")) {
@@ -388,8 +412,16 @@ public class Client {
         paperButton.setVisible(visibility);
         scissorButton.setVisible(visibility);
         resultLabel.setVisible(visibility);
+        playWithBox.setEnabled(!visibility);
 
         playButton.setText(visibility ? "Stop" : "Play");
+    }
+
+    private static void enableDisableGameButtons(Boolean state) {
+        rockButton.setEnabled(state);
+        scissorButton.setEnabled(state);
+        paperButton.setEnabled(state);
+        resultLabel.setVisible(state);
     }
 
 }
